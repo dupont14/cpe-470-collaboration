@@ -145,6 +145,22 @@ float ic2_speed=0;
 float ic3_speed=0;
 
 
+//pid controller declerations
+int t5_count = 0;
+
+float kp = 8.75;
+float ki = 2.18;
+float kd = .4375;
+float error_ic2 = 0;
+float prev_error_ic2 = 0;
+float ei_ic2 = 0;
+
+
+float error_ic3 = 0;
+float prev_error_ic3 = 0;
+float ei_ic3 = 0;
+float value;
+
 
 /* ------------------------------------------------------------ */
 /*				Forward Declarations							*/
@@ -299,7 +315,53 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
     
     
     prtLed4Clr = (1 << bnLed4);
-
+    
+    t5_count ++;
+    
+    if(t5_count > 5)
+    {
+        error_ic2 =  12 - ic2_speed;
+        ei_ic2 = ei_ic2 + error_ic2;
+        value = ((kp*error_ic2)+(ki*ei_ic2)+kd*(error_ic2-prev_error_ic2));
+        prev_error_ic2 = error_ic2;      
+        if(value > 9999)
+        {
+            value = 9999;
+        }
+        else if(value < 0)
+        {
+            value = 0;
+        }
+        else
+        {
+            value = value;
+        }
+        OC2R = value;
+        OC2RS = value;
+        
+        
+        error_ic3 =  12 - ic3_speed;
+        ei_ic3 = ei_ic3 + error_ic3;
+        value = ((kp*error_ic2)+(ki*ei_ic3)+kd*(error_ic3-prev_error_ic3));
+        prev_error_ic3 = error_ic3;      
+        if(value > 9999)
+        {
+            value = 9999;
+        }
+        else if(value < 0)
+        {
+            value = 0;
+        }
+        else
+        {
+            value = value;
+        }
+        OC3R = value;
+        OC3RS = value;
+        t5_count = 0;
+    }
+    
+    
 }
 
 // SET DUTY CYCLES TO ZERO FIRST --> MOTOR CONNECTED 
@@ -409,7 +471,13 @@ int main(void) {
 	
 
 	
-
+    
+    OC2R = 1000;
+    OC2RS = 1000;
+    
+    OC3R = 1000;
+    OC3RS = 1000;
+    
 	INTDisableInterrupts();
 	DelayMs(500);
 
@@ -670,10 +738,6 @@ int main(void) {
 		int nice_place_for_a_breakpoint;
 		nice_place_for_a_breakpoint = 100;
 
-		OC2R  = 10000;
-		OC2RS = 10000;
-		OC3R  = 10000;
-		OC3RS = 10000;
 
 		nice_place_for_a_breakpoint = 200;
 	//LCD update
@@ -696,9 +760,8 @@ int main(void) {
         
 
 
-
-
-
+    
+    
 		DelayMs(500);
 
 	}  //end while
