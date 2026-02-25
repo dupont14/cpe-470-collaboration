@@ -321,8 +321,12 @@ void __ISR(_INPUT_CAPTURE_2_VECTOR, ipl4) _IC2_IntHandler(void)
     {
         ic2_delta_time = ic2_delta_time + 65000;
     }
-ic2_speed =(8.6/160)/(ic2_delta_time*(1/1000000));// this should be the speed formula but im not sure 
     
+    ic2_speed = 8.6*(1/160)*(1000000/1) / ic2_delta_time;
+    // ic2_speed =(8.6/160)/(ic2_delta_time*(1/1000000));
+    // this should be the speed formula but im not sure 
+    // in/rev * rev/pulse * pulse/us * us/sec
+    // 8.6*(1/160)*(1000000/1) / dt 
 // increment counter
 }
 // This commented block outlined in class:
