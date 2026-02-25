@@ -28,6 +28,7 @@
 /* ------------------------------------------------------------ */
 
 #include <plib.h>
+#include <stdio.h>
 #include "stdtypes.h"
 #include "config.h"
 #include "MtrCtrl.h"
@@ -130,15 +131,17 @@ int ic3_count = 0;
 
 int ic2_time = 0;
 int ic2_previous_time = 0;
-int ic2_delta_time = 0;
+float ic2_delta_time = 0;
 
 
 int ic3_time = 0;
 int ic3_previous_time = 0;
-int ic3_delta_time = 0;
+float ic3_delta_time = 0;
 
 int data_array[200];
 
+float ic2_speed=0;
+float ic3_speed=0;
 
 
 
@@ -318,6 +321,7 @@ void __ISR(_INPUT_CAPTURE_2_VECTOR, ipl4) _IC2_IntHandler(void)
     {
         ic2_delta_time = ic2_delta_time + 65000;
     }
+ic2_speed =(8.6/160)/(ic2_delta_time*(1/1000000));// this should be the speed formula but im not sure 
     
 // increment counter
 }
@@ -355,6 +359,7 @@ void __ISR(_INPUT_CAPTURE_3_VECTOR, ipl4) _IC3_IntHandler(void)
     {
         ic3_count = 0;
     }
+ic3_speed =(8.6/160)/(ic3_delta_time*(1/1000000));
 }
 
 
@@ -406,8 +411,11 @@ int main(void) {
 
 	INTDisableInterrupts();
 	DelayMs(500);
-	
 
+	   int n1,n2;
+    char buffer1 [50],buffer2 [50];
+	
+/*
 	//write to PmodCLS
 	SpiEnable();
 	SpiPutBuff(szClearScreen, 3);
@@ -423,6 +431,7 @@ int main(void) {
 	SpiPutBuff("Digilent!", 9);
 	DelayMs(2000);
 	SpiDisable();
+*/
 
 	prtLed1Set	= ( 1 << bnLed1 );
 	INTEnableInterrupts();
@@ -666,6 +675,29 @@ int main(void) {
 		OC3RS = 10000;
 
 		nice_place_for_a_breakpoint = 200;
+	//LCD update
+	SpiEnable();
+	SpiPutBuff(szClearScreen, 3);
+	DelayMs(4);
+	SpiPutBuff(szBacklightOn, 4);
+	DelayMs(4);
+	SpiPutBuff(szCursorOff, 4);
+	DelayMs(4);
+    n2=sprintf(buffer2,"IC3=%.2f",ic3_speed);
+	SpiPutBuff(buffer2, n2);
+	DelayMs(4);
+	SpiPutBuff(szCursorPos, 6);
+	DelayMs(4);
+    n1=sprintf(buffer1,"IC2=%.2f",ic2_speed);
+	SpiPutBuff(buffer1, n1);
+	DelayMs(2000);
+	SpiDisable();
+        
+
+
+
+
+
 		DelayMs(500);
 
 	}  //end while
