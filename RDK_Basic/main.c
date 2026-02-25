@@ -1,3 +1,4 @@
+
 /************************************************************************/
 /*																		*/
 /*	main.c	--	Main program module for project							*/
@@ -131,12 +132,12 @@ int ic3_count = 0;
 
 int ic2_time = 0;
 int ic2_previous_time = 0;
-float ic2_delta_time = 0;
+int ic2_delta_time = 0;
 
 
 int ic3_time = 0;
 int ic3_previous_time = 0;
-float ic3_delta_time = 0;
+int ic3_delta_time = 0;
 
 int data_array[200];
 
@@ -321,7 +322,7 @@ void __ISR(_INPUT_CAPTURE_2_VECTOR, ipl4) _IC2_IntHandler(void)
     {
         ic2_delta_time = ic2_delta_time + 65000;
     }
-ic2_speed =(8.6/160)/(ic2_delta_time*(1/1000000));// this should be the speed formula but im not sure 
+ic2_speed =53750/(float)ic2_delta_time;// this should be the speed formula but im not sure 
     
 // increment counter
 }
@@ -359,7 +360,7 @@ void __ISR(_INPUT_CAPTURE_3_VECTOR, ipl4) _IC3_IntHandler(void)
     {
         ic3_count = 0;
     }
-ic3_speed =(8.6/160)/(ic3_delta_time*(1/1000000));
+ic3_speed =53750/((float)ic3_delta_time);
 }
 
 
