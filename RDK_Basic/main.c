@@ -160,6 +160,12 @@ float error_ic3 = 0;
 float prev_error_ic3 = 0;
 float ei_ic3 = 0;
 float value;
+int val_arr[10];
+int speed_arr[4000];
+int motorspeed = 0;
+int avg_count = 0;
+int speed_arr_count = 0;
+int secondary_count = 0;
 
 
 /* ------------------------------------------------------------ */
@@ -318,7 +324,7 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
     
     t5_count ++;
     
-    if(t5_count > 5)
+    if(t5_count > 10)
     {
         error_ic2 =  12 - ic2_speed;
         ei_ic2 = ei_ic2 + error_ic2;
@@ -356,8 +362,38 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
         {
             value = value;
         }
-        OC3R = value;
-        OC3RS = value;
+        
+        val_arr[avg_count] = value;
+        
+        motorspeed = Average(val_arr, 10);
+        
+        avg_count ++;
+        
+        if(avg_count > 9)
+        {
+            avg_count = 0;
+        }
+        
+        OC3R = motorspeed;
+        OC3RS = motorspeed;
+        
+        
+        secondary_count++;
+        
+        if(secondary_count > 5000)
+        {
+            speed_arr[speed_arr_count] = motorspeed;
+            speed_arr_count++;
+                
+            if (speed_arr_count > 3999 )
+            {
+                speed_arr_count=0;
+            }
+            
+        }
+        
+            
+
         t5_count = 0;
     }
     
@@ -475,8 +511,8 @@ int main(void) {
     OC2R = 1000;
     OC2RS = 1000;
     
-    OC3R = 1000;
-    OC3RS = 1000;
+    OC3R = 2000;
+    OC3RS = 2000;
     
 	INTDisableInterrupts();
 	DelayMs(500);

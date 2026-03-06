@@ -26,6 +26,7 @@
 #include "config.h"
 #include "util.h"
 
+
 /* ------------------------------------------------------------ */
 /*				Local Type Definitions							*/
 /* ------------------------------------------------------------ */
@@ -131,5 +132,20 @@ void InitLeds( void )
 }	
 
 
+int Average(int array[], int size)
+{
+    int sum = 0;
+    int average = 0;
+    int i;
+    
+    for (i=0; i < size; i++)
+    {
+        sum += array[i];
+    }
+    
+    
+    average = sum/size;
+    return average;
+}
 
 /*************************************************************************************/
