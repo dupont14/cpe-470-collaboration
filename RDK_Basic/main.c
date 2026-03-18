@@ -168,6 +168,13 @@ int speed_arr_count = 0;
 int secondary_count = 0;
 
 
+
+
+// ADC conversion decleration
+
+
+
+
 /* ------------------------------------------------------------ */
 /*				Forward Declarations							*/
 /* ------------------------------------------------------------ */
@@ -483,6 +490,25 @@ ic3_speed =53750/((float)ic3_delta_time);
 **		Main program module. Performs basic board initialization
 **		and then enters the main program loop.
 */
+
+void __ISR(_ADC_VECTOR, ipl3) _ADC_IntHandler(void) 
+{
+
+//   ADC CONVERSION
+//   ISR is written assuming that ADC channels are scanned and the interrupt is thrown after all the conversions are complete
+//
+
+	prtLed3Set = (1 << bnLed3);   		// turn LED3 on in the beginning of interrupt
+	IFS1CLR = ( 1 << 1 );  			// clear interrupt flag for ADC1 Convert Done
+
+//  Read the a/d buffers and convert to voltages
+	ADCValue0 = (float)ADC1BUF0*3.3/1023.0;	// Reading AN0(zero), pin 1 of connector JJ -- servo sensor (center)
+	ADCValue1 = (float)ADC1BUF1*3.3/1023.0;
+    ADCValue2 = (float)ADC1BUF2*3.3/1023.0;		
+	
+	prtLed3Clr = (1 << bnLed3);   // turn LED3 off at the end of interrupt
+}
+
 
 int main(void) {
 
@@ -902,6 +928,33 @@ void DeviceInit() {
 	SpiInit();
     
     InitLeds();
+    
+    // ADC init
+    
+    //	CONFIGURE ADC
+	AD1PCFG	= 0XFFF8;
+	// CONFIGURE AN0, AN1, and AN2 AS ANALOG INPUTS
+	AD1CON1	= 0X00E4;   
+	// BIT 7-5 SSRC 111 = INTERNAL COUNTER ENDS SAMPLING AND STARTS CONVERSION
+	// BIT 4 CLRASM 0 = Normal Operation, buffer contents will be overwritten by the next conversion sequence
+	// BIT 2 ASAM 1 = SAMPLING BEGINS immediately after conversion completes; SAMP bit is automatically set
+	// BIT 1 SAMP 0 = ADC IS NOT SAMPLING
+	// BUT 0 DONE 0 = STATUS BIT
+	AD1CON2	= 0X0408; // 0000 0100 0000 1000     				
+	// BIT 10 CSCNA 1 = SCAN INPUTS
+	// BIT 2-3 SMPL 1-1 = ONE INTERRUPT AFTER EVERY THIRD CONVERSION
+	AD1CON3	= 0X1FFF;
+	// BIT 15 ADRC 0 = CLOCK DERIVED FROM PERIPHERAL BUS CLOCK
+	// SAMC AND ADCS - I NEED TO READ MORE ABOUT TIMING TO UNDERSTAND THE FUNCTION OF THESE TWO VARIABLES
+	AD1CHS	= 0X00000000;   // 32 bit SFR  
+	AD1CSSL	= 0X0007;  
+	// CSSL = SCAN CHANNELS 2,1 and 0
+	IPC6SET	= ( 1 << 27 ) | ( 1 << 26 ); // ADC interrupt priority level 3, sub 0
+	IFS1CLR	= 2;    // CLEAR ADC INTERRUPT FLAG
+	IEC1SET = 2;	// ENABLE ADC INTERRUPT
+	AD1CON1SET = 0X8000;	// 	TURN ADC ON
+
+
 
 	// Enable multi-vector interrupts.
 	INTEnableSystemMultiVectoredInt();
