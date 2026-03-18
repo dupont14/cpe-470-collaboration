@@ -172,6 +172,10 @@ int secondary_count = 0;
 
 // ADC conversion decleration
 
+float ADCValue0 = 0;	// Reading AN0(zero), pin 1 of connector JJ -- servo sensor (center)
+float ADCValue1 = 0;
+float ADCValue2 = 0;	
+
 
 
 
