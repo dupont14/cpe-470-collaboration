@@ -30,6 +30,7 @@
 
 #include <plib.h>
 #include <stdio.h>
+#include <math.h>
 #include "stdtypes.h"
 #include "config.h"
 #include "MtrCtrl.h"
@@ -175,6 +176,10 @@ int secondary_count = 0;
 float ADCValue0 = 0;	// Reading AN0(zero), pin 1 of connector JJ -- servo sensor (center)
 float ADCValue1 = 0;
 float ADCValue2 = 0;	
+
+
+// distance conversion for ADC channels
+float distance1 = 0;
 
 
 
@@ -385,8 +390,10 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
             avg_count = 0;
         }
         
-        OC3R = motorspeed;
-        OC3RS = motorspeed;
+        OC3R = 0;
+        OC3RS = 0;
+        OC2R = 0;
+        OC2RS = 0;
         
         
         secondary_count++;
@@ -508,8 +515,10 @@ void __ISR(_ADC_VECTOR, ipl3) _ADC_IntHandler(void)
 //  Read the a/d buffers and convert to voltages
 	ADCValue0 = (float)ADC1BUF0*3.3/1023.0;	// Reading AN0(zero), pin 1 of connector JJ -- servo sensor (center)
 	ADCValue1 = (float)ADC1BUF1*3.3/1023.0;
-    ADCValue2 = (float)ADC1BUF2*3.3/1023.0;		
-	
+    ADCValue2 = (float)ADC1BUF2*3.3/1023.0;	
+   
+    distance1 =  (3.7028 * pow(ADCValue0, 2)) - (18.398 * ADCValue0) + 24.357;
+    
 	prtLed3Clr = (1 << bnLed3);   // turn LED3 off at the end of interrupt
 }
 
@@ -814,7 +823,7 @@ int main(void) {
 	DelayMs(4);
 	SpiPutBuff(szCursorOff, 4);
 	DelayMs(4);
-    n2=sprintf(buffer2,"IC3=%.2f",ic3_speed);
+    n2=sprintf(buffer2,"Distance: %.2f", distance1);
 	SpiPutBuff(buffer2, n2);
 	DelayMs(4);
 	SpiPutBuff(szCursorPos, 6);
