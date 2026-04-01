@@ -390,18 +390,16 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
             avg_count = 0;
         }
         */
-        OC3R = value;
-        OC3RS = value;
+      
         
-<<<<<<< HEAD
-        /*
-=======
+
+
         // OC3R = motorspeed;
         // OC3RS = motorspeed;
         
         
->>>>>>> 8546dcc (stopping motors on start)
-        secondary_count++;
+
+        /*secondary_count++;
         
         if(secondary_count > 5000)
         {
@@ -413,8 +411,8 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
                 speed_arr_count=0;
             }
             
-        }
-        */
+        }*/
+        
             
 
         t5_count = 0;
@@ -552,13 +550,10 @@ int main(void) {
 
 	
     
-<<<<<<< HEAD
-    OC2R = 2000;
-    OC2RS = 2000;
-=======
+
     OC2R = 0;
     OC2RS = 0;
->>>>>>> 8546dcc (stopping motors on start)
+
     
     OC3R = 0;
     OC3RS = 0;
@@ -843,14 +838,14 @@ int main(void) {
 	DelayMs(2000);
 	SpiDisable();
        
-if(Distance>20){
+if(Distance0>20){
 trisMtrLeftDirClr=(1<<bnMtrLeftDir);
-ptrMtrLeftDirSet=(1<<bnMtrLeftDir);
+prtMtrLeftDirSet=(1<<bnMtrLeftDir);
 
 trisMtrRightDirClr=(1<<bnMtrRightDir);
 prtMtrRightDirClr=(1<<bnMtrRightDir);
-dspeed0=7+.6(Distance0-20);
-dspeed1=7+.6(Distance0-20);
+dspeed0=7+.6*(Distance0-20);
+dspeed1=7+.6*(Distance0-20);
 }
 else if(Distance0<7){
 trisMtrLeftDirClr=(1<<bnMtrLeftDir);
@@ -858,8 +853,8 @@ prtMtrLeftDirClr=(1<<bnMtrLeftDir);
 
 trisMtrRightDirClr=(1<<bnMtrRightDir);
 prtMtrRightDirSet=(1<<bnMtrRightDir);
-dspeed0=7+.6(7-Distance0);
-dspeed1=7+.6(7-Distance0);
+dspeed0=7+.6*(7-Distance0);
+dspeed1=7+.6*(7-Distance0);
 
 
 }
@@ -871,7 +866,7 @@ dspeed1=0;
 if(Distance1<5){
 dspeed0=8;
 DelayMs(700);
-despeed0=0;
+dspeed0=0;
 }
 
 
