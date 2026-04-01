@@ -30,6 +30,7 @@
 
 #include <plib.h>
 #include <stdio.h>
+#include <math.h>
 #include "stdtypes.h"
 #include "config.h"
 #include "MtrCtrl.h"
@@ -161,7 +162,7 @@ float prev_error_ic3 = 0;
 float ei_ic3 = 0;
 float value;
 int val_arr[10];
-int speed_arr[4000];
+//int speed_arr[4000];
 int motorspeed = 0;
 int avg_count = 0;
 int speed_arr_count = 0;
@@ -176,7 +177,11 @@ float ADCValue0 = 0;	// Reading AN0(zero), pin 1 of connector JJ -- servo sensor
 float ADCValue1 = 0;
 float ADCValue2 = 0;	
 
+float Distance0=0;
+float Distance1=0;
 
+float dspeed=0;
+float dspeed1=0;
 
 
 /* ------------------------------------------------------------ */
@@ -337,7 +342,7 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
     
     if(t5_count > 10)
     {
-        error_ic2 =  12 - ic2_speed;
+        error_ic2 =  dspeed0 - ic2_speed;
         ei_ic2 = ei_ic2 + error_ic2;
         value = ((kp*error_ic2)+(ki*ei_ic2)+kd*(error_ic2-prev_error_ic2));
         prev_error_ic2 = error_ic2;      
@@ -357,7 +362,7 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
         OC2RS = value;
         
         
-        error_ic3 =  12 - ic3_speed;
+        error_ic3 =  dspeed1 - ic3_speed;
         ei_ic3 = ei_ic3 + error_ic3;
         value = ((kp*error_ic2)+(ki*ei_ic3)+kd*(error_ic3-prev_error_ic3));
         prev_error_ic3 = error_ic3;      
@@ -373,7 +378,7 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
         {
             value = value;
         }
-        
+        /*
         val_arr[avg_count] = value;
         
         motorspeed = Average(val_arr, 10);
@@ -384,11 +389,11 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
         {
             avg_count = 0;
         }
+        */
+        OC3R = value;
+        OC3RS = value;
         
-        OC3R = motorspeed;
-        OC3RS = motorspeed;
-        
-        
+        /*
         secondary_count++;
         
         if(secondary_count > 5000)
@@ -402,7 +407,7 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
             }
             
         }
-        
+        */
             
 
         t5_count = 0;
@@ -509,7 +514,8 @@ void __ISR(_ADC_VECTOR, ipl3) _ADC_IntHandler(void)
 	ADCValue0 = (float)ADC1BUF0*3.3/1023.0;	// Reading AN0(zero), pin 1 of connector JJ -- servo sensor (center)
 	ADCValue1 = (float)ADC1BUF1*3.3/1023.0;
     ADCValue2 = (float)ADC1BUF2*3.3/1023.0;		
-	
+	Distance0=10.379*pow(ADCValue0,-1.202);
+	Distance1=10.379*pow(ADCValue1,-1.202);
 	prtLed3Clr = (1 << bnLed3);   // turn LED3 off at the end of interrupt
 }
 
@@ -538,8 +544,8 @@ int main(void) {
 
 	
     
-    OC2R = 1000;
-    OC2RS = 1000;
+    OC2R = 2000;
+    OC2RS = 2000;
     
     OC3R = 2000;
     OC3RS = 2000;
@@ -814,7 +820,7 @@ int main(void) {
 	DelayMs(4);
 	SpiPutBuff(szCursorOff, 4);
 	DelayMs(4);
-    n2=sprintf(buffer2,"IC3=%.2f",ic3_speed);
+    n2=sprintf(buffer2,"Distance0=%.2f",Distance0);
 	SpiPutBuff(buffer2, n2);
 	DelayMs(4);
 	SpiPutBuff(szCursorPos, 6);
@@ -823,12 +829,38 @@ int main(void) {
 	SpiPutBuff(buffer1, n1);
 	DelayMs(2000);
 	SpiDisable();
-        
+       
+if(Distance>20){
+trisMtrLeftDirClr=(1<<bnMtrLeftDir);
+ptrMtrLeftDirSet=(1<<bnMtrLeftDir);
+
+trisMtrRightDirClr=(1<<bnMtrRightDir);
+prtMtrRightDirClr=(1<<bnMtrRightDir);
+dspeed0=7+.6(Distance0-20);
+dspeed1=7+.6(Distance0-20);
+}
+else if(Distance0<7){
+trisMtrLeftDirClr=(1<<bnMtrLeftDir);
+prtMtrLeftDirClr=(1<<bnMtrLeftDir);
+
+trisMtrRightDirClr=(1<<bnMtrRightDir);
+prtMtrRightDirSet=(1<<bnMtrRightDir);
+dspeed0=7+.6(7-Distance0);
+dspeed1=7+.6(7-Distance0);
 
 
-    
-    
-		DelayMs(500);
+}
+else{
+dspeed0=0;
+dspeed1=0;
+}
+
+if(Distance1<5){
+dspeed0=8;
+DelayMs(700);
+despeed0=0;
+}
+
 
 	}  //end while
 }  //end main
