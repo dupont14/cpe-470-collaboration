@@ -358,8 +358,8 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
         {
             value = value;
         }
-        OC2R = value;
-        OC2RS = value;
+        // OC2R = value;
+        // OC2RS = value;
         
         
         error_ic3 =  dspeed1 - ic3_speed;
@@ -393,7 +393,14 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
         OC3R = value;
         OC3RS = value;
         
+<<<<<<< HEAD
         /*
+=======
+        // OC3R = motorspeed;
+        // OC3RS = motorspeed;
+        
+        
+>>>>>>> 8546dcc (stopping motors on start)
         secondary_count++;
         
         if(secondary_count > 5000)
@@ -413,6 +420,7 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
         t5_count = 0;
     }
     
+    prtLed4Clr = (1 << bnLed4 );
     
 }
 
@@ -544,11 +552,16 @@ int main(void) {
 
 	
     
+<<<<<<< HEAD
     OC2R = 2000;
     OC2RS = 2000;
+=======
+    OC2R = 0;
+    OC2RS = 0;
+>>>>>>> 8546dcc (stopping motors on start)
     
-    OC3R = 2000;
-    OC3RS = 2000;
+    OC3R = 0;
+    OC3RS = 0;
     
 	INTDisableInterrupts();
 	DelayMs(500);
