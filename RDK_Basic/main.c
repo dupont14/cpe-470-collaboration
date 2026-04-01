@@ -863,11 +863,11 @@ dspeed0=0;
 dspeed1=0;
 }
 
-if(Distance1<5){
-dspeed0=8;
-DelayMs(700);
-dspeed0=0;
-}
+//if(Distance1<5){
+//dspeed0=8;
+//DelayMs(700);
+//dspeed0=0;
+//}
 
 
 	}  //end while
