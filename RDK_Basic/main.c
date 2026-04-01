@@ -180,7 +180,7 @@ float ADCValue2 = 0;
 float Distance0=0;
 float Distance1=0;
 
-float dspeed=0;
+float dspeed0=0;
 float dspeed1=0;
 
 
