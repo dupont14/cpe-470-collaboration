@@ -179,6 +179,7 @@ float ADCValue2 = 0;
 
 float Distance0=0;
 float Distance1=0;
+float Distance2=0;
 
 float dspeed0=0;
 float dspeed1=0;
@@ -344,7 +345,8 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
     {
         error_ic2 =  dspeed0 - ic2_speed;
         ei_ic2 = ei_ic2 + error_ic2;
-        value = ((kp*error_ic2)+(ki*ei_ic2)+kd*(error_ic2-prev_error_ic2));
+        	ADCValue1 = (float)ADC1BUF1*3.3/1023.0;
+            value = ((kp*error_ic3)+(ki*ei_ic3)+kd*(error_ic3-prev_error_ic3));
         prev_error_ic2 = error_ic2;      
         if(value > 9999)
         {
@@ -522,6 +524,8 @@ void __ISR(_ADC_VECTOR, ipl3) _ADC_IntHandler(void)
     ADCValue2 = (float)ADC1BUF2*3.3/1023.0;		
 	Distance0=10.379*pow(ADCValue0,-1.202);
 	Distance1=10.379*pow(ADCValue1,-1.202);
+    Distance2=10.379*pow(ADCValue2,-1.202);
+    
 	prtLed3Clr = (1 << bnLed3);   // turn LED3 off at the end of interrupt
 }
 
@@ -828,7 +832,7 @@ int main(void) {
 	DelayMs(4);
 	SpiPutBuff(szCursorOff, 4);
 	DelayMs(4);
-    n2=sprintf(buffer2,"Distance0=%.2f",Distance0);
+    n2=sprintf(buffer2,"Distance2=%.2f",Distance2);
 	SpiPutBuff(buffer2, n2);
 	DelayMs(4);
 	SpiPutBuff(szCursorPos, 6);
@@ -855,6 +859,25 @@ trisMtrRightDirClr=(1<<bnMtrRightDir);
 prtMtrRightDirSet=(1<<bnMtrRightDir);
 dspeed0=7+.6*(7-Distance0);
 dspeed1=7+.6*(7-Distance0);
+	SpiDisable();
+       
+//if(Distance0>20){
+//trisMtrLeftDirClr=(1<<bnMtrLeftDir);
+//prtMtrLeftDirSet=(1<<bnMtrLeftDir);
+//
+//trisMtrRightDirClr=(1<<bnMtrRightDir);
+//prtMtrRightDirClr=(1<<bnMtrRightDir);
+//dspeed0=7+.6*(Distance0-20);
+//dspeed1=7+.6*(Distance0-20);
+//}
+//else if(Distance0<7){
+//trisMtrLeftDirClr=(1<<bnMtrLeftDir);
+//prtMtrLeftDirClr=(1<<bnMtrLeftDir);
+//
+//trisMtrRightDirClr=(1<<bnMtrRightDir);
+//prtMtrRightDirSet=(1<<bnMtrRightDir);
+//dspeed0=7+.6*(7-Distance0);
+//dspeed1=7+.6*(7-Distance0);
 
 
 }
