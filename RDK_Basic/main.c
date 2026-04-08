@@ -216,7 +216,7 @@ void	Pmod8LDSet( BYTE stLeds );
 */
 
 
-void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
+void __ISR(_TIMER_5_VECTOR, ipl7AUTO) Timer5Handler(void)
 {
 	static	WORD tusLeds = 0;
 	
@@ -366,7 +366,7 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
         
         error_ic3 =  dspeed1 - ic3_speed;
         ei_ic3 = ei_ic3 + error_ic3;
-        value = ((kp*error_ic2)+(ki*ei_ic3)+kd*(error_ic3-prev_error_ic3));
+        value = ((kp*error_ic3)+(ki*ei_ic3)+kd*(error_ic3-prev_error_ic3));
         prev_error_ic3 = error_ic3;      
         if(value > 9999)
         {
@@ -426,7 +426,7 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
 
 // SET DUTY CYCLES TO ZERO FIRST --> MOTOR CONNECTED 
 // DETERMINE NUMBER OF PULSES PER WHEEL ROTATION
-void __ISR(_INPUT_CAPTURE_2_VECTOR, ipl4) _IC2_IntHandler(void)
+void __ISR(_INPUT_CAPTURE_2_VECTOR, ipl4AUTO) _IC2_IntHandler(void)
 {
     // clear interrupt flag for Input Capture 2
     IFS0CLR = ( 1 << 9);
@@ -508,7 +508,7 @@ ic3_speed =53750/((float)ic3_delta_time);
 **		and then enters the main program loop.
 */
 
-void __ISR(_ADC_VECTOR, ipl3) _ADC_IntHandler(void) 
+void __ISR(_ADC_VECTOR, ipl3AUTO) _ADC_IntHandler(void) 
 {
 
 //   ADC CONVERSION
@@ -848,8 +848,8 @@ prtMtrLeftDirSet=(1<<bnMtrLeftDir);
 
 trisMtrRightDirClr=(1<<bnMtrRightDir);
 prtMtrRightDirClr=(1<<bnMtrRightDir);
-dspeed0=7+.6*(Distance0-20);
-dspeed1=7+.6*(Distance0-20);
+dspeed0 = 7 + 0.6 * (Distance0 - 20);
+dspeed1 = 7 + 0.6 * (Distance0 - 20);
 }
 else if(Distance0<7){
 trisMtrLeftDirClr=(1<<bnMtrLeftDir);
@@ -857,8 +857,8 @@ prtMtrLeftDirClr=(1<<bnMtrLeftDir);
 
 trisMtrRightDirClr=(1<<bnMtrRightDir);
 prtMtrRightDirSet=(1<<bnMtrRightDir);
-dspeed0=7+.6*(7-Distance0);
-dspeed1=7+.6*(7-Distance0);
+dspeed0=7 + 0.6 * (7 - Distance0);
+dspeed1=7 + 0.6 * (7 - Distance0);
 	SpiDisable();
        
 //if(Distance0>20){
@@ -876,8 +876,8 @@ dspeed1=7+.6*(7-Distance0);
 //
 //trisMtrRightDirClr=(1<<bnMtrRightDir);
 //prtMtrRightDirSet=(1<<bnMtrRightDir);
-//dspeed0=7+.6*(7-Distance0);
-//dspeed1=7+.6*(7-Distance0);
+//dspeed0 = 7 + 0.6 * (7 - Distance0);
+//dspeed1 = 7 + 0.6 * (7 - Distance0);
 
 
 }
