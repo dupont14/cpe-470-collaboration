@@ -221,7 +221,7 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
 	
 	mT5ClearIntFlag();
     
-    prtLed4Set = (1 << bnLed4 );
+    prtLed1Set = (1 << bnLed1 );
 	
 	// Read the raw state of the button pins.
 	btnBtn1.stCur = ( prtBtn1 & ( 1 << bnBtn1 ) ) ? stPressed : stReleased;
@@ -365,7 +365,11 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
         error_ic3 =  dspeed1 - ic3_speed;
         ei_ic3 = ei_ic3 + error_ic3;
         value = ((kp*error_ic2)+(ki*ei_ic3)+kd*(error_ic3-prev_error_ic3));
-        prev_error_ic3 = error_ic3;      
+        prev_error_ic3 = error_ic3;
+        
+        //    value = ((kp * error_ic3) + (ki * ei_ic3) + kd * (error_ic3 - prev_error_ic3));
+        //    prev_error_ic3 = error_ic3;
+        
         if(value > 9999)
         {
             value = 9999;
@@ -418,7 +422,7 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
         t5_count = 0;
     }
     
-    prtLed4Clr = (1 << bnLed4 );
+    prtLed1Clr = (1 << bnLed1 );
     
 }
 
@@ -426,6 +430,7 @@ void __ISR(_TIMER_5_VECTOR, ipl7) Timer5Handler(void)
 // DETERMINE NUMBER OF PULSES PER WHEEL ROTATION
 void __ISR(_INPUT_CAPTURE_2_VECTOR, ipl4) _IC2_IntHandler(void)
 {
+    prtLed2Set = (1 << bnLed2 );
     // clear interrupt flag for Input Capture 2
     IFS0CLR = ( 1 << 9);
     ic2_count ++;
@@ -444,6 +449,7 @@ void __ISR(_INPUT_CAPTURE_2_VECTOR, ipl4) _IC2_IntHandler(void)
     }
 ic2_speed =53750/(float)ic2_delta_time;// this should be the speed formula but im not sure 
     
+    prtLed2Clr = (1 << bnLed2 );
 // increment counter
 }
 // This commented block outlined in class:
@@ -456,6 +462,7 @@ void __ISR(_INPUT_CAPTURE_3_VECTOR, ipl4) _IC3_IntHandler(void)
 } */
 void __ISR(_INPUT_CAPTURE_3_VECTOR, ipl4) _IC3_IntHandler(void)
 {
+    prtLed3Set = (1 << bnLed3 );
     IFS0CLR = (1 << 13);
     
     while(IC3CON & (1 << 3))
@@ -481,6 +488,8 @@ void __ISR(_INPUT_CAPTURE_3_VECTOR, ipl4) _IC3_IntHandler(void)
         ic3_count = 0;
     }
 ic3_speed =53750/((float)ic3_delta_time);
+
+    prtLed3Clr = (1 << bnLed3 );
 }
 
 
@@ -513,7 +522,7 @@ void __ISR(_ADC_VECTOR, ipl3) _ADC_IntHandler(void)
 //   ISR is written assuming that ADC channels are scanned and the interrupt is thrown after all the conversions are complete
 //
 
-	prtLed3Set = (1 << bnLed3);   		// turn LED3 on in the beginning of interrupt
+	prtLed4Set = (1 << bnLed4);   		// turn LED3 on in the beginning of interrupt
 	IFS1CLR = ( 1 << 1 );  			// clear interrupt flag for ADC1 Convert Done
 
 //  Read the a/d buffers and convert to voltages
@@ -522,7 +531,7 @@ void __ISR(_ADC_VECTOR, ipl3) _ADC_IntHandler(void)
     ADCValue2 = (float)ADC1BUF2*3.3/1023.0;		
 	Distance0=10.379*pow(ADCValue0,-1.202);
 	Distance1=10.379*pow(ADCValue1,-1.202);
-	prtLed3Clr = (1 << bnLed3);   // turn LED3 off at the end of interrupt
+	prtLed4Clr = (1 << bnLed4);   // turn LED3 off at the end of interrupt
 }
 
 
@@ -551,12 +560,12 @@ int main(void) {
 	
     
 
-    OC2R = 0;
-    OC2RS = 0;
+    OC2R = 2000;
+    OC2RS = 2000;
 
     
-    OC3R = 0;
-    OC3RS = 0;
+    OC3R = 2000;
+    OC3RS = 2000;
     
 	INTDisableInterrupts();
 	DelayMs(500);
@@ -838,31 +847,61 @@ int main(void) {
 	DelayMs(2000);
 	SpiDisable();
        
-if(Distance0>20){
-trisMtrLeftDirClr=(1<<bnMtrLeftDir);
-prtMtrLeftDirSet=(1<<bnMtrLeftDir);
+//if(Distance0>20){
+//trisMtrLeftDirClr=(1<<bnMtrLeftDir);
+//prtMtrLeftDirSet=(1<<bnMtrLeftDir);
+//
+//trisMtrRightDirClr=(1<<bnMtrRightDir);
+//prtMtrRightDirClr=(1<<bnMtrRightDir);
+//dspeed0=7+.6*(Distance0-20);
+//dspeed1=7+.6*(Distance0-20);
+//}
+//else if(Distance0<7){
+//trisMtrLeftDirClr=(1<<bnMtrLeftDir);
+//prtMtrLeftDirClr=(1<<bnMtrLeftDir);
+//
+//trisMtrRightDirClr=(1<<bnMtrRightDir);
+//prtMtrRightDirSet=(1<<bnMtrRightDir);
+//dspeed0=7 + 0.6 * (7-Distance0);
+//dspeed1=7 + 0.6 * (7-Distance0);
+//
+//
+//}
+//else{
+//dspeed0=0;
+//dspeed1=0;
+//}
+    
+//
+if (Distance0 > 20) {
+    trisMtrLeftDirClr = (1 << bnMtrLeftDir);
+    prtMtrLeftDirSet = (1 << bnMtrLeftDir);
 
-trisMtrRightDirClr=(1<<bnMtrRightDir);
-prtMtrRightDirClr=(1<<bnMtrRightDir);
-dspeed0=7+.6*(Distance0-20);
-dspeed1=7+.6*(Distance0-20);
+    trisMtrRightDirClr = (1 << bnMtrRightDir);
+    prtMtrRightDirClr = (1 << bnMtrRightDir);
+    dspeed0 = 7 + 0.6 * (Distance0 - 20);
+    dspeed1 = 7 + 0.6 * (Distance0 - 20);
 }
-else if(Distance0<7){
-trisMtrLeftDirClr=(1<<bnMtrLeftDir);
-prtMtrLeftDirClr=(1<<bnMtrLeftDir);
+else if (Distance0 < 7) {
+    trisMtrLeftDirClr = (1 << bnMtrLeftDir);
+    prtMtrLeftDirClr = (1 << bnMtrLeftDir);
 
-trisMtrRightDirClr=(1<<bnMtrRightDir);
-prtMtrRightDirSet=(1<<bnMtrRightDir);
-dspeed0=7+.6*(7-Distance0);
-dspeed1=7+.6*(7-Distance0);
+    trisMtrRightDirClr = (1 << bnMtrRightDir);
+    prtMtrRightDirSet = (1 << bnMtrRightDir);
 
-
+    dspeed0 = 7 + 0.6 * (7 - Distance0);
+    dspeed1 = 7 + 0.6 * (7 - Distance0);
 }
-else{
-dspeed0=0;
-dspeed1=0;
+else {
+    dspeed0 = 0;
+    dspeed1 = 0;
 }
 
+if (Distance1 < 5) {
+    dspeed0 = 8;
+    DelayMs(700);
+    dspeed0 = 0;
+}
 //if(Distance1<5){
 //dspeed0=8;
 //DelayMs(700);

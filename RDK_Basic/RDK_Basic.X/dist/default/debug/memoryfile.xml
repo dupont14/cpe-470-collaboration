@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?> 
 <project>                                  
-  <executable name="dist/default/production/RDK_Basic.X.production.elf">                 
+  <executable name="dist/default/debug/RDK_Basic.X.debug.elf">                 
     <memory name="program">                 
       <units>bytes</units>                 
       <length>531968</length>                 
-      <used>24508</used>                     
-      <free>507460</free>                     
+      <used>24668</used>                     
+      <free>507300</free>                     
     </memory>                              
     <memory name="data">              
       <units>bytes</units>                 
       <length>32768</length>                 
-      <used>1516</used>                     
-      <free>31252</free>                     
+      <used>2028</used>                     
+      <free>30740</free>                     
     </memory>                              
   </executable>                            
 </project>                                 

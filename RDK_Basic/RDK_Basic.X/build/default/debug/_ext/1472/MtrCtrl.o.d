@@ -1,4 +1,4 @@
-build/default/production/_ext/1472/MtrCtrl.o:  \
+build/default/debug/_ext/1472/MtrCtrl.o:  \
 ../MtrCtrl.c  \
 ../config.h  \
  ../stdtypes.h  \
