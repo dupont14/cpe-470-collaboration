@@ -86,6 +86,20 @@
 #define	cstMaxCnt	10 // number of consecutive reads required for
 					   // the state of a button to be updated
 
+#define WAVE_WAITING_FAR       0
+#define WAVE_WAITING_CLOSE     1
+#define WAVE_WAITING_FAR_AGAIN 2
+
+#define WAVE_CLOSE_DISTANCE    12.0
+#define WAVE_FAR_DISTANCE      18.0
+
+#define DOUBLE_WAVE_TIME       1000
+#define MIN_WAVE_TIME          80
+#define SPIN_TIME_360          1600
+#define SPIN_COOLDOWN_TIME     1500
+
+#define LCD_UPDATE_TIME        250
+
 struct btn {
 	BYTE	stBtn;	// status of the button (pressed or released)
 	BYTE	stCur;  // current read state of the button
@@ -184,6 +198,18 @@ float Distance2=0;
 float dspeed0=0;
 float dspeed1=0;
 
+volatile DWORD ms_count = 0;
+
+int wave_state = WAVE_WAITING_FAR;
+int wave_count = 0;
+
+DWORD first_wave_time = 0;
+DWORD last_wave_time = 0;
+DWORD wave_cooldown_time = 0;
+
+BOOL spin_running = fFalse;
+DWORD spin_stop_time = 0;
+
 
 /* ------------------------------------------------------------ */
 /*				Forward Declarations							*/
@@ -219,8 +245,16 @@ void	Pmod8LDSet( BYTE stLeds );
 void __ISR(_TIMER_5_VECTOR, ipl7AUTO) Timer5Handler(void)
 {
 	static	WORD tusLeds = 0;
+    static int timer5_ms_counter = 0;
 	
 	mT5ClearIntFlag();
+    
+    timer5_ms_counter++;
+    if(timer5_ms_counter >= 10)
+    {
+        timer5_ms_counter = 0;
+        ms_count++;
+    }
     
     prtLed4Set = (1 << bnLed4 );
 	
@@ -545,6 +579,10 @@ int main(void) {
 	BYTE	stPmodSwt3;
 	BYTE	stPmodSwt4;
     
+    float left_distance = 0;
+    DWORD now_time = 0;
+    DWORD next_lcd_time = 0;
+    
     
     
 	DeviceInit();
@@ -606,7 +644,10 @@ int main(void) {
 		stPmodSwt3 = PmodSwt3.stBtn;
 		stPmodSwt4 = PmodSwt4.stBtn;
         
-        
+        left_distance = Distance1;
+        now_time = ms_count;
+	        
+	        
 
 		INTEnableInterrupts();
 		//configure OCR to go forward
@@ -817,6 +858,88 @@ int main(void) {
 			UpdateMotors();
 		}  //end if
 		*/  // end commented block for HW2
+        
+        // stop the spin if the time is done
+        if(spin_running == fTrue)
+        {
+            if(now_time >= spin_stop_time)
+            {
+                MtrCtrlStop();
+                UpdateMotors();
+                spin_running = fFalse;
+            }
+        }
+        
+        // check for two fast hand waves on the left sensor
+        if(spin_running == fFalse)
+        {
+            if(now_time > wave_cooldown_time)
+            {
+                if(wave_state == WAVE_WAITING_FAR)
+                {
+                    // wait until the hand is not close
+                    if(left_distance > WAVE_FAR_DISTANCE)
+                    {
+                        wave_state = WAVE_WAITING_CLOSE;
+                    }
+                }
+                else if(wave_state == WAVE_WAITING_CLOSE)
+                {
+                    // check if hand is close
+                    if(left_distance < WAVE_CLOSE_DISTANCE)
+                    {
+                        wave_state = WAVE_WAITING_FAR_AGAIN;
+                    }
+                }
+                else if(wave_state == WAVE_WAITING_FAR_AGAIN)
+                {
+                    // check if hand moved away again
+                    if(left_distance > WAVE_FAR_DISTANCE)
+                    {
+                        if((now_time - last_wave_time) > MIN_WAVE_TIME)
+                        {
+                            last_wave_time = now_time;
+                            
+                            if(wave_count == 0)
+                            {
+                                // this means one wave happened
+                                wave_count = 1;
+                                first_wave_time = now_time;
+                            }
+                            else
+                            {
+                                if((now_time - first_wave_time) < DOUBLE_WAVE_TIME)
+                                {
+                                    // start the spin
+                                    MtrCtrlStop();
+                                    UpdateMotors();
+                                    
+                                    MtrCtrlLeft();
+                                    UpdateMotors();
+                                    
+                                    spin_running = fTrue;
+                                    spin_stop_time = now_time + SPIN_TIME_360;
+                                    
+                                    wave_count = 0;
+                                    wave_state = WAVE_WAITING_FAR;
+                                    wave_cooldown_time = now_time + SPIN_TIME_360 + SPIN_COOLDOWN_TIME;
+                                }
+                                else
+                                {
+                                    wave_count = 1;
+                                    first_wave_time = now_time;
+                                }
+                            }
+                        }
+                        
+                        if(spin_running == fFalse)
+                        {
+                            wave_state = WAVE_WAITING_CLOSE;
+                        }
+                    }
+                }
+            }
+        }
 
 		// HW2: add code to set SFR values + breakpoint on the next line
 		int nice_place_for_a_breakpoint;
@@ -825,6 +948,9 @@ int main(void) {
 
 		nice_place_for_a_breakpoint = 200;
 	//LCD update
+    if(now_time >= next_lcd_time)
+    {
+    next_lcd_time = now_time + LCD_UPDATE_TIME;
 	SpiEnable();
 	SpiPutBuff(szClearScreen, 3);
 	DelayMs(4);
@@ -832,16 +958,25 @@ int main(void) {
 	DelayMs(4);
 	SpiPutBuff(szCursorOff, 4);
 	DelayMs(4);
-    n2=sprintf(buffer2,"Distance2=%.2f",Distance2);
+    n2=sprintf(buffer2,"Left=%.2f",left_distance);
 	SpiPutBuff(buffer2, n2);
 	DelayMs(4);
 	SpiPutBuff(szCursorPos, 6);
 	DelayMs(4);
+    if(spin_running == fTrue)
+    {
+    n1=sprintf(buffer1,"SPIN");
+    }
+    else
+    {
     n1=sprintf(buffer1,"IC2=%.2f",ic2_speed);
+    }
 	SpiPutBuff(buffer1, n1);
-	DelayMs(2000);
 	SpiDisable();
-       
+    }
+	       
+if(spin_running == fFalse)
+{
 if(Distance0>20){
 trisMtrLeftDirClr=(1<<bnMtrLeftDir);
 prtMtrLeftDirSet=(1<<bnMtrLeftDir);
@@ -884,6 +1019,7 @@ dspeed1=7 + 0.6 * (7 - Distance0);
 else{
 dspeed0=0;
 dspeed1=0;
+}
 }
 
 //if(Distance1<5){
